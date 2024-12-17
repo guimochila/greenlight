@@ -1,0 +1,81 @@
+severity:
+  default-severity: error
+
+output:
+  formats:
+    - format: sarif
+      path: golangci-lint.sarif
+    - format: colored-line-number
+      path: stderr
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
+
+linters:
+  presets:
+    - bugs
+    - comment
+    - complexity
+    - error
+    - format
+    - import
+    - metalinter
+    - module
+    - performance
+    - sql
+    - style
+    - test
+    - unused
+  # Run only fast linters from enabled linters set (first run won't be fast)
+  fast: true
+  # enable-all: false
+  # disable-all: false
+
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - gofmt
+    - gofumpt
+    - goheader
+    - revive
+    - gosec
+
+  # https://golangci-lint.run/usage/linters/#disabled-by-default
+  disable:
+    - depguard
+    - gomoddirectives
+    - tagliatelle
+    - testpackage
+
+linters-settings:
+  gosec:
+    exclude-generated: true
+  godox:
+    keywords: ['BUG', 'FIXME']
+  funlen:
+    ignore-comments: true
+    # Does not support severity setting
+    lines: -1
+    statements: 50
+  lll:
+    line-length: 120
+    tab-width: 2
+  dupl:
+    # tokens count to trigger issue, 150 by default
+    threshold: 200
+  gofumpt:
+    module-path: github.com/guimochila/greenlight
+  goheader:
+    values:
+      const:
+        COMPANY: guimochila
+    template: |-
+      Copyleft (c) {{ YEAR }}, {{ COMPANY }}. Happy Coding.
+
+issues:
+  exclude-use-default: true
+  exclude-case-sensitive: false
+  new: false
+  fix: false
+  exclude-dirs:
+    - 'bin'
