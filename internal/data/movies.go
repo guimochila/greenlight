@@ -29,6 +29,7 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 
 	v.Check(movie.Year != 0, "year", "must be provided")
 	v.Check(movie.Year >= MinimunYear, "year", "must be greater than 1888")
+	//nolint:all
 	v.Check(movie.Year <= int32(time.Now().Year()), "year", "must not be in the future")
 
 	v.Check(movie.Runtime != 0, "runtime", "must be provided")

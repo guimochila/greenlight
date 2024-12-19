@@ -2,32 +2,23 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/guimochila/greenlight/config"
 )
 
-const version = "1.0.0"
-
-type config struct {
-	port int
-	env  string
-}
-
 type application struct {
-	config config
+	config config.Config
 	logger *slog.Logger
 }
 
 func main() {
-	var cfg config
+	var cfg config.Config
 
-	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.Parse()
+	config.New(&cfg)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -37,15 +28,15 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
+		Addr:         cfg.Server.Addr,
 		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  cfg.Server.Readtimeout,
+		WriteTimeout: cfg.Server.Writetimeout,
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
-	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
+	logger.Info("starting server", "addr", srv.Addr, "env", cfg.Env)
 
 	err := srv.ListenAndServe()
 	logger.Error(err.Error())
