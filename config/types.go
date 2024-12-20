@@ -5,7 +5,11 @@ import "time"
 
 // Datasource configuration.
 type Datasource struct {
-	dsn string
+	DSN          string
+	Timeout      time.Duration
+	MaxOpenConns int
+	MaxIdleConns int
+	MaxIdleTime  time.Duration
 }
 
 // Web server configuration.
