@@ -11,12 +11,14 @@ import (
 	"time"
 
 	"github.com/guimochila/greenlight/config"
+	"github.com/guimochila/greenlight/internal/querier"
 	_ "github.com/lib/pq"
 )
 
 type application struct {
-	config config.Config
-	logger *slog.Logger
+	config  config.Config
+	logger  *slog.Logger
+	querier *querier.Querier
 }
 
 func main() {
@@ -36,9 +38,12 @@ func main() {
 
 	logger.Info("database connection poll established")
 
+	querier := querier.New(db)
+
 	app := &application{
-		config: cfg,
-		logger: logger,
+		config:  cfg,
+		logger:  logger,
+		querier: querier,
 	}
 
 	srv := &http.Server{

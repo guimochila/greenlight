@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/guimochila/greenlight/internal/data"
+	"github.com/guimochila/greenlight/internal/db"
 	"github.com/guimochila/greenlight/internal/validator"
 )
 
@@ -40,7 +41,25 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fmt.Fprintf(w, "%+v\n", input)
+	_, err = app.querier.CreateMovie(r.Context(), db.CreateMovieParams{
+		Title:   movie.Title,
+		Year:    movie.Year,
+		Runtime: movie.Runtime,
+		Genres:  movie.Genres,
+	})
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+
+		return
+	}
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {

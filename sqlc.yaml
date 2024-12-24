@@ -1,0 +1,29 @@
+# Copyleft (c) 2024, guimochila. Happy Coding.
+
+version: "2"
+overrides:
+  go:
+    overrides:
+      - db_type: 'uuid'
+        go_type:
+          import: 'github.com/google/uuid'
+          type: 'UUID'
+      - db_type: 'integer'
+        go_type: 'int'
+      - column: 'movies.runtime'
+        go_type:
+          import: 'github.com/guimochila/greenlight/internal/data'
+          type: 'Runtime'
+sql:
+  - name: 'db'
+    engine: 'postgresql'
+    queries: 'config/db/queries'
+    schema: 'config/db/migrations'
+    gen:
+      go:
+        package: 'db'
+        out: 'internal/db'
+        sql_package: 'database/sql'
+        emit_db_tags: yes
+        emit_prepared_queries: yes
+        emit_interface: yes

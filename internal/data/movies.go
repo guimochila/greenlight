@@ -23,6 +23,8 @@ const (
 	MaxGenres      = 5
 )
 
+func MapMovie(e Movie) {}
+
 func ValidateMovie(v *validator.Validator, movie *Movie) {
 	v.Check(movie.Title != "", "title", "must be provided")
 	v.Check(len(movie.Title) <= TitleBytesLong, "title", "must not be more than 500 bytes long")
