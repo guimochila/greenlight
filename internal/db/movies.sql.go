@@ -44,3 +44,78 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Creat
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.Version)
 	return i, err
 }
+
+const deleteMovie = `-- name: DeleteMovie :exec
+DELETE FROM movies
+WHERE id = $1
+`
+
+func (q *Queries) DeleteMovie(ctx context.Context, id uuid.UUID) error {
+	_, err := q.exec(ctx, q.deleteMovieStmt, deleteMovie, id)
+	return err
+}
+
+const getMovie = `-- name: GetMovie :one
+SELECT id, created_at, title, year, runtime, genres, version
+FROM movies
+WHERE id = $1
+`
+
+func (q *Queries) GetMovie(ctx context.Context, id uuid.UUID) (Movie, error) {
+	row := q.queryRow(ctx, q.getMovieStmt, getMovie, id)
+	var i Movie
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Title,
+		&i.Year,
+		&i.Runtime,
+		pq.Array(&i.Genres),
+		&i.Version,
+	)
+	return i, err
+}
+
+const updateMovie = `-- name: UpdateMovie :one
+UPDATE movies
+SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
+WHERE id = $5
+RETURNING id, created_at, year, runtime, genres, version
+`
+
+type UpdateMovieParams struct {
+	Title   string       `db:"title"`
+	Year    int32        `db:"year"`
+	Runtime data.Runtime `db:"runtime"`
+	Genres  []string     `db:"genres"`
+	ID      uuid.UUID    `db:"id"`
+}
+
+type UpdateMovieRow struct {
+	ID        uuid.UUID    `db:"id"`
+	CreatedAt time.Time    `db:"created_at"`
+	Year      int32        `db:"year"`
+	Runtime   data.Runtime `db:"runtime"`
+	Genres    []string     `db:"genres"`
+	Version   int32        `db:"version"`
+}
+
+func (q *Queries) UpdateMovie(ctx context.Context, arg UpdateMovieParams) (UpdateMovieRow, error) {
+	row := q.queryRow(ctx, q.updateMovieStmt, updateMovie,
+		arg.Title,
+		arg.Year,
+		arg.Runtime,
+		pq.Array(arg.Genres),
+		arg.ID,
+	)
+	var i UpdateMovieRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Year,
+		&i.Runtime,
+		pq.Array(&i.Genres),
+		&i.Version,
+	)
+	return i, err
+}

@@ -27,6 +27,15 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createMovieStmt, err = db.PrepareContext(ctx, createMovie); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateMovie: %w", err)
 	}
+	if q.deleteMovieStmt, err = db.PrepareContext(ctx, deleteMovie); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteMovie: %w", err)
+	}
+	if q.getMovieStmt, err = db.PrepareContext(ctx, getMovie); err != nil {
+		return nil, fmt.Errorf("error preparing query GetMovie: %w", err)
+	}
+	if q.updateMovieStmt, err = db.PrepareContext(ctx, updateMovie); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateMovie: %w", err)
+	}
 	return &q, nil
 }
 
@@ -35,6 +44,21 @@ func (q *Queries) Close() error {
 	if q.createMovieStmt != nil {
 		if cerr := q.createMovieStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createMovieStmt: %w", cerr)
+		}
+	}
+	if q.deleteMovieStmt != nil {
+		if cerr := q.deleteMovieStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteMovieStmt: %w", cerr)
+		}
+	}
+	if q.getMovieStmt != nil {
+		if cerr := q.getMovieStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getMovieStmt: %w", cerr)
+		}
+	}
+	if q.updateMovieStmt != nil {
+		if cerr := q.updateMovieStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateMovieStmt: %w", cerr)
 		}
 	}
 	return err
@@ -77,6 +101,9 @@ type Queries struct {
 	db              DBTX
 	tx              *sql.Tx
 	createMovieStmt *sql.Stmt
+	deleteMovieStmt *sql.Stmt
+	getMovieStmt    *sql.Stmt
+	updateMovieStmt *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -84,5 +111,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:              tx,
 		tx:              tx,
 		createMovieStmt: q.createMovieStmt,
+		deleteMovieStmt: q.deleteMovieStmt,
+		getMovieStmt:    q.getMovieStmt,
+		updateMovieStmt: q.updateMovieStmt,
 	}
 }

@@ -6,10 +6,15 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
 	CreateMovie(ctx context.Context, arg CreateMovieParams) (CreateMovieRow, error)
+	DeleteMovie(ctx context.Context, id uuid.UUID) error
+	GetMovie(ctx context.Context, id uuid.UUID) (Movie, error)
+	UpdateMovie(ctx context.Context, arg UpdateMovieParams) (UpdateMovieRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
