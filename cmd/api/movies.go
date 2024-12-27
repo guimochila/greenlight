@@ -26,7 +26,7 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie := db.Movie{
+	params := db.CreateMovieParams{
 		Title:   input.Title,
 		Year:    input.Year,
 		Runtime: input.Runtime,
@@ -35,18 +35,13 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	v := validator.New()
 
-	if validator.ValidateMovie(v, movie); !v.Valid() {
+	if validator.ValidateMovie(v, params); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 
 		return
 	}
 
-	_, err = app.querier.CreateMovie(r.Context(), db.CreateMovieParams{
-		Title:   movie.Title,
-		Year:    movie.Year,
-		Runtime: movie.Runtime,
-		Genres:  movie.Genres,
-	})
+	movie, err := app.querier.CreateMovie(r.Context(), params)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 
@@ -54,7 +49,7 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+	headers.Set("Location", fmt.Sprintf("/v1/movies/%s", movie.ID))
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, headers)
 	if err != nil {
@@ -136,6 +131,31 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+
+		return
+	}
+
+	err = app.querier.DeleteMovie(r.Context(), id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			app.notFoundResponse(w, r)
+		} else {
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "movie successfully deleted"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
