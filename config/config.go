@@ -23,9 +23,10 @@ const (
 
 // Default datasource connection limits.
 const (
-	MaxOpenConns = 25
-	MaxIdleConns = 25
-	MaxIdleTime  = 15 * time.Minute
+	MaxOpenConns    = 1
+	MaxIdleConns    = 25
+	MaxIdleTime     = 15 * time.Minute
+	MaxQueryTimeout = 3 * time.Second
 )
 
 // Global application configuration.

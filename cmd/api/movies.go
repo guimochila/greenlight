@@ -2,10 +2,12 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
 
+	"github.com/guimochila/greenlight/config"
 	"github.com/guimochila/greenlight/internal/data"
 	"github.com/guimochila/greenlight/internal/db"
 	"github.com/guimochila/greenlight/internal/validator"
@@ -41,7 +43,10 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie, err := app.querier.CreateMovie(r.Context(), params)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), config.MaxQueryTimeout)
+	defer cancel()
+
+	movie, err := app.querier.CreateMovie(ctx, params)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 
@@ -57,7 +62,7 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) getMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		http.NotFound(w, r)
@@ -65,7 +70,10 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	movie, err := app.querier.GetMovie(r.Context(), id)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), config.MaxQueryTimeout)
+	defer cancel()
+
+	movie, err := app.querier.GetMovie(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			app.notFoundResponse(w, r)
@@ -119,7 +127,10 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie, err := app.querier.UpdateMovie(r.Context(), params)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), config.MaxQueryTimeout)
+	defer cancel()
+
+	movie, err := app.querier.UpdateMovie(ctx, params)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			app.notFoundResponse(w, r)
@@ -144,7 +155,10 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.querier.DeleteMovie(r.Context(), id)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), config.MaxQueryTimeout)
+	defer cancel()
+
+	err = app.querier.DeleteMovie(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			app.notFoundResponse(w, r)
