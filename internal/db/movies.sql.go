@@ -55,6 +55,50 @@ func (q *Queries) DeleteMovie(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getAll = `-- name: GetAll :many
+SELECT id, created_at, title, year, runtime, genres, version
+FROM movies
+WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
+AND (genres @> $2 OR $2 = '{}')
+ORDER BY created_at
+`
+
+type GetAllParams struct {
+	PlaintoTsquery string   `db:"plainto_tsquery"`
+	Genres         []string `db:"genres"`
+}
+
+func (q *Queries) GetAll(ctx context.Context, arg GetAllParams) ([]Movie, error) {
+	rows, err := q.query(ctx, q.getAllStmt, getAll, arg.PlaintoTsquery, pq.Array(arg.Genres))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Movie
+	for rows.Next() {
+		var i Movie
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.Title,
+			&i.Year,
+			&i.Runtime,
+			pq.Array(&i.Genres),
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMovie = `-- name: GetMovie :one
 SELECT id, created_at, title, year, runtime, genres, version
 FROM movies

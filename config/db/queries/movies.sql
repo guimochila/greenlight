@@ -8,6 +8,13 @@ SELECT id, created_at, title, year, runtime, genres, version
 FROM movies
 WHERE id = $1;
 
+-- name: GetAll :many
+SELECT id, created_at, title, year, runtime, genres, version
+FROM movies
+WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
+AND (genres @> $2 OR $2 = '{}')
+ORDER BY created_at;
+
 -- name: UpdateMovie :one
 UPDATE movies
 SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1

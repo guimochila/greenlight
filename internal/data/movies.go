@@ -1,11 +1,10 @@
-// Copyleft (c) 2024, guimochila. Happy Coding.
-package validator
+package data
 
 import (
 	"reflect"
 	"time"
 
-	"github.com/guimochila/greenlight/internal/data"
+	"github.com/guimochila/greenlight/internal/validator"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 	MaxGenres      = 5
 )
 
-func ValidateMovie(v *Validator, movie any) {
+func ValidateMovie(v *validator.Validator, movie any) {
 	val := reflect.ValueOf(movie)
 
 	if val.Kind() != reflect.Struct {
@@ -38,7 +37,7 @@ func ValidateMovie(v *Validator, movie any) {
 	}
 
 	if runtime := val.FieldByName("Runtime"); runtime.IsValid() && runtime.Kind() == reflect.Int32 {
-		runtimeInt := data.Runtime(runtime.Int())
+		runtimeInt := Runtime(runtime.Int())
 		v.Check(runtimeInt != 0, "runtime", "must be provided")
 		v.Check(runtimeInt > 0, "runtime", "must be a positive integer")
 	}
@@ -53,6 +52,6 @@ func ValidateMovie(v *Validator, movie any) {
 			uniqueGenres[i] = genresSlice.Index(i).String()
 		}
 
-		v.Check(Unique(uniqueGenres), "genres", "must not contain duplicate values")
+		v.Check(validator.Unique(uniqueGenres), "genres", "must not contain duplicate values")
 	}
 }

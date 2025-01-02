@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	CreateMovie(ctx context.Context, arg CreateMovieParams) (CreateMovieRow, error)
 	DeleteMovie(ctx context.Context, id uuid.UUID) error
+	GetAll(ctx context.Context, arg GetAllParams) ([]Movie, error)
 	GetMovie(ctx context.Context, id uuid.UUID) (Movie, error)
 	UpdateMovie(ctx context.Context, arg UpdateMovieParams) (UpdateMovieRow, error)
 }
