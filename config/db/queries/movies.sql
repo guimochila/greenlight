@@ -13,7 +13,16 @@ SELECT id, created_at, title, year, runtime, genres, version
 FROM movies
 WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 AND (genres @> $2 OR $2 = '{}')
-ORDER BY created_at;
+ORDER BY
+  CASE WHEN sqlc.narg('sort_column')::text = 'title' THEN title END ASC,
+  CASE WHEN sqlc.narg('sort_column')::text = '-title' THEN title END DESC,
+  CASE WHEN sqlc.narg('sort_column')::text = 'runtime' THEN runtime END ASC,
+  CASE WHEN sqlc.narg('sort_column')::text = '-runtime' THEN runtime END DESC,
+  CASE WHEN sqlc.narg('sort_column')::text = 'year' THEN year END ASC,
+  CASE WHEN sqlc.narg('sort_column')::text = '-year' THEN year END DESC,
+  CASE WHEN sqlc.narg('sort_column')::text = 'created_at' THEN created_at END ASC,
+  CASE WHEN sqlc.narg('sort_column')::text = '-created_at' THEN created_at END DESC,
+id ASC;
 
 -- name: UpdateMovie :one
 UPDATE movies

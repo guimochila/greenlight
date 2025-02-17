@@ -70,7 +70,7 @@ linters-settings:
       const:
         COMPANY: guimochila
     template: |-
-      Copyleft (c) {{ YEAR }}, {{ COMPANY }}. Happy Coding.
+      Copyleft (c) {{ YEAR-2024-2025 }}, {{ COMPANY }}. Happy Coding.
 
 issues:
   exclude-use-default: true

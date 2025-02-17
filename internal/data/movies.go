@@ -1,3 +1,5 @@
+// Copyleft (c) 2024, guimochila. Happy Coding.
+
 package data
 
 import (

@@ -214,6 +214,10 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	movies, err := app.querier.GetAll(ctx, db.GetAllParams{
 		PlaintoTsquery: input.Title,
 		Genres:         input.Genres,
+		SortColumn: sql.NullString{
+			String: input.Filters.Sort,
+			Valid:  true,
+		},
 	})
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
