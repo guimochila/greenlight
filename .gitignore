@@ -30,3 +30,4 @@ go.work.sum
 
 # Air
 tmp/
+golangci-lint.sarif

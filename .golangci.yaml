@@ -1,11 +1,13 @@
+version: "2"
+
 severity:
   default-severity: error
 
 output:
   formats:
-    - format: sarif
+    sarif:
       path: golangci-lint.sarif
-    - format: colored-line-number
+    text:
       path: stderr
   print-issued-lines: true
   print-linter-name: true
@@ -34,8 +36,6 @@ linters:
 
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
-    - gofmt
-    - gofumpt
     - goheader
     - revive
     - gosec
@@ -46,6 +46,11 @@ linters:
     - gomoddirectives
     - tagliatelle
     - testpackage
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
 
 linters-settings:
   gosec:
