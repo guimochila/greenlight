@@ -62,25 +62,33 @@ FROM movies
 WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 AND (genres @> $2 OR $2 = '{}')
 ORDER BY
-  CASE WHEN $3::text = 'title' THEN title END ASC,
-  CASE WHEN $3::text = '-title' THEN title END DESC,
-  CASE WHEN $3::text = 'runtime' THEN runtime END ASC,
-  CASE WHEN $3::text = '-runtime' THEN runtime END DESC,
-  CASE WHEN $3::text = 'year' THEN year END ASC,
-  CASE WHEN $3::text = '-year' THEN year END DESC,
-  CASE WHEN $3::text = 'created_at' THEN created_at END ASC,
-  CASE WHEN $3::text = '-created_at' THEN created_at END DESC,
-id ASC
+  CASE WHEN $5::text = 'title' THEN title END ASC,
+  CASE WHEN $5::text = '-title' THEN title END DESC,
+  CASE WHEN $5::text = 'runtime' THEN runtime END ASC,
+  CASE WHEN $5::text = '-runtime' THEN runtime END DESC,
+  CASE WHEN $5::text = 'year' THEN year END ASC,
+  CASE WHEN $5::text = '-year' THEN year END DESC,
+  CASE WHEN $5::text = 'created_at' THEN created_at END ASC,
+  CASE WHEN $5::text = '-created_at' THEN created_at END DESC,
+id ASC LIMIT $3 OFFSET $4
 `
 
 type GetAllParams struct {
 	PlaintoTsquery string         `db:"plainto_tsquery"`
 	Genres         []string       `db:"genres"`
+	Limit          int            `db:"limit"`
+	Offset         int            `db:"offset"`
 	SortColumn     sql.NullString `db:"sort_column"`
 }
 
 func (q *Queries) GetAll(ctx context.Context, arg GetAllParams) ([]Movie, error) {
-	rows, err := q.query(ctx, q.getAllStmt, getAll, arg.PlaintoTsquery, pq.Array(arg.Genres), arg.SortColumn)
+	rows, err := q.query(ctx, q.getAllStmt, getAll,
+		arg.PlaintoTsquery,
+		pq.Array(arg.Genres),
+		arg.Limit,
+		arg.Offset,
+		arg.SortColumn,
+	)
 	if err != nil {
 		return nil, err
 	}

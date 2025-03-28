@@ -22,7 +22,7 @@ ORDER BY
   CASE WHEN sqlc.narg('sort_column')::text = '-year' THEN year END DESC,
   CASE WHEN sqlc.narg('sort_column')::text = 'created_at' THEN created_at END ASC,
   CASE WHEN sqlc.narg('sort_column')::text = '-created_at' THEN created_at END DESC,
-id ASC;
+id ASC LIMIT $3 OFFSET $4;
 
 -- name: UpdateMovie :one
 UPDATE movies

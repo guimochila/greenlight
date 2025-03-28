@@ -2,8 +2,6 @@
 package data
 
 import (
-	"strings"
-
 	"github.com/guimochila/greenlight/internal/validator"
 )
 
@@ -14,22 +12,12 @@ type Filters struct {
 	SortSafeList []string
 }
 
-func (f Filters) sortColumn() string {
-	for _, safeValue := range f.SortSafeList {
-		if f.Sort == safeValue {
-			return strings.TrimPrefix(f.Sort, "-")
-		}
-	}
-
-	panic("unsafe sort parameter: " + f.Sort)
+func (f Filters) Limit() int {
+	return f.PageSize
 }
 
-func (f Filters) sortDirection() string {
-	if strings.HasPrefix(f.Sort, "-") {
-		return "DESC"
-	}
-
-	return "ASC"
+func (f Filters) Offset() int {
+	return (f.Page - 1) * f.PageSize
 }
 
 func ValidateFilters(v *validator.Validator, f Filters) {
