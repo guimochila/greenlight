@@ -211,7 +211,7 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), config.MaxQueryTimeout)
 	defer cancel()
 
-	movies, err := app.querier.GetAll(ctx, db.GetAllParams{
+	dbMovies, err := app.querier.GetAll(ctx, db.GetAllParams{
 		PlaintoTsquery: input.Title,
 		Genres:         input.Genres,
 		SortColumn: sql.NullString{
@@ -227,11 +227,20 @@ func (app *application) listMoviesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if movies == nil {
-		movies = []db.Movie{}
+	var totalCount int64
+	movies := make([]db.GetAllRow, 0, len(dbMovies))
+
+	if len(dbMovies) > 0 {
+		totalCount = dbMovies[0].TotalCount
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+	for _, m := range dbMovies {
+		movies = append(movies, m)
+	}
+
+	metadata := data.CalculateMetadata(int(totalCount), input.Page, input.PageSize)
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies, "metadata": metadata}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -57,8 +57,8 @@ func (q *Queries) DeleteMovie(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAll = `-- name: GetAll :many
-SELECT id, created_at, title, year, runtime, genres, version
-FROM movies
+SELECT m.id, m.created_at, m.title, m.year, m.runtime, m.genres, m.version, count(*) OVER() AS total_count
+FROM movies m
 WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 AND (genres @> $2 OR $2 = '{}')
 ORDER BY
@@ -81,7 +81,18 @@ type GetAllParams struct {
 	SortColumn     sql.NullString `db:"sort_column"`
 }
 
-func (q *Queries) GetAll(ctx context.Context, arg GetAllParams) ([]Movie, error) {
+type GetAllRow struct {
+	ID         uuid.UUID    `db:"id"`
+	CreatedAt  time.Time    `db:"created_at"`
+	Title      string       `db:"title"`
+	Year       int32        `db:"year"`
+	Runtime    data.Runtime `db:"runtime"`
+	Genres     []string     `db:"genres"`
+	Version    int32        `db:"version"`
+	TotalCount int64        `db:"total_count"`
+}
+
+func (q *Queries) GetAll(ctx context.Context, arg GetAllParams) ([]GetAllRow, error) {
 	rows, err := q.query(ctx, q.getAllStmt, getAll,
 		arg.PlaintoTsquery,
 		pq.Array(arg.Genres),
@@ -93,9 +104,9 @@ func (q *Queries) GetAll(ctx context.Context, arg GetAllParams) ([]Movie, error)
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Movie
+	var items []GetAllRow
 	for rows.Next() {
-		var i Movie
+		var i GetAllRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
@@ -104,6 +115,7 @@ func (q *Queries) GetAll(ctx context.Context, arg GetAllParams) ([]Movie, error)
 			&i.Runtime,
 			pq.Array(&i.Genres),
 			&i.Version,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}

@@ -9,8 +9,8 @@ FROM movies
 WHERE id = $1;
 
 -- name: GetAll :many
-SELECT id, created_at, title, year, runtime, genres, version
-FROM movies
+SELECT m.*, count(*) OVER() AS total_count
+FROM movies m
 WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 AND (genres @> $2 OR $2 = '{}')
 ORDER BY

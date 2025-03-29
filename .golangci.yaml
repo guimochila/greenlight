@@ -1,7 +1,7 @@
 version: "2"
 
 severity:
-  default-severity: error
+  default: error
 
 output:
   formats:
@@ -9,78 +9,52 @@ output:
       path: golangci-lint.sarif
     text:
       path: stderr
-  print-issued-lines: true
-  print-linter-name: true
-  uniq-by-line: true
-  sort-results: true
+      print-issued-lines: true
+      print-linter-name: true
+  sort-order:
+    - linter
+    - severity
 
 linters:
-  presets:
-    - bugs
-    - comment
-    - complexity
-    - error
-    - format
-    - import
-    - metalinter
-    - module
-    - performance
-    - sql
-    - style
-    - test
-    - unused
-  # Run only fast linters from enabled linters set (first run won't be fast)
-  fast: true
-  # enable-all: false
-  # disable-all: false
-
+  default: fast
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
     - goheader
     - revive
     - gosec
-
   # https://golangci-lint.run/usage/linters/#disabled-by-default
   disable:
     - depguard
     - gomoddirectives
     - tagliatelle
     - testpackage
+  settings:
+    godox:
+      keywords: ['BUG', 'FIXME']
+    funlen:
+      ignore-comments: true
+      # Does not support severity setting
+    lll:
+      line-length: 120
+      tab-width: 2
+    dupl:
+      # tokens count to trigger issue, 150 by default
+      threshold: 200
+    goheader:
+      values:
+        const:
+          COMPANY: guimochila
+      template: |-
+        Copyleft (c) {{ YEAR-2024-2025 }}, {{ COMPANY }}. Happy Coding.
 
 formatters:
   enable:
     - gofmt
     - gofumpt
-
-linters-settings:
-  gosec:
-    exclude-generated: true
-  godox:
-    keywords: ['BUG', 'FIXME']
-  funlen:
-    ignore-comments: true
-    # Does not support severity setting
-    lines: -1
-    statements: 50
-  lll:
-    line-length: 120
-    tab-width: 2
-  dupl:
-    # tokens count to trigger issue, 150 by default
-    threshold: 200
-  gofumpt:
-    module-path: github.com/guimochila/greenlight
-  goheader:
-    values:
-      const:
-        COMPANY: guimochila
-    template: |-
-      Copyleft (c) {{ YEAR-2024-2025 }}, {{ COMPANY }}. Happy Coding.
+  settings:
+    gofumpt:
+      module-path: github.com/guimochila/greenlight
 
 issues:
-  exclude-use-default: true
-  exclude-case-sensitive: false
   new: false
   fix: false
-  exclude-dirs:
-    - 'bin'
